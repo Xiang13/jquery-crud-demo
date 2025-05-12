@@ -26,14 +26,6 @@ A simple CRUD (Create, Read, Update, Delete) interface built using jQuery and Bo
 
 ---
 
-## 📷 Screenshot
-
-以下為畫面示意圖（請自行將本畫面截圖並命名為 `screenshot.png` 上傳到此專案中）：
-
-![screenshot](screenshot.png)
-
----
-
 ## 🔧 Setup & Usage
 
 ### ✅ 線上試用（建議部署到 GitHub Pages）  
