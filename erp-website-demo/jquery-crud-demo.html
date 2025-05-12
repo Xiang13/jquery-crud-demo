@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <title>Bootstrap 5 Example</title>
+    <meta charset="utf-8">
+    <meta name="viewport"  content="width=device-width, initial-scale=1">
+    <!-- bootstrap5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jquery  -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- css -->
+     <link rel="stylesheet" href="/css/index.css">
+    </head>
+<body>
+    <div class="container">
+        <div class="mt-4 p-5 bg-secondary text-white rounded mb-3">
+            <h1>ERP 系統 練習</h1> 
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat..</p> 
+        </div>
+        <div class="mb-3">
+            <label for="emailInput" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="emailInput" placeholder="name@example.com">
+        </div>
+        <div class="mb-3">
+            <label for="infoInput" class="form-label">Example textarea</label>
+            <textarea class="form-control" id="infoInput" rows="3"></textarea>
+        </div> 
+        <button class="btn btn-primary addBtn">新增資料</button>
+        <button class="btn btn-primary clearBtn">清空上面</button>
+        <button class="btn btn-warning editBtn" type="submit">編輯</button>
+        <button class="btn btn-warning cancelEditBtn" type="submit">取消編輯</button>
+
+        <table class="table table-hover mt-4 table-fixed">
+            <thead class="table-dark">
+                <tr>
+                    <th class="col-email" scope="col">Email</th>
+                    <th class="col-info" scope="col">資訊</th>
+                    <th class="col-status" scope="col">狀態</th>
+                </tr>
+            </thead>
+            <tbody id="table-content">
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
+
+
+<script>
+
+    let dataList = [];
+    let isEdit = false;
+    let hasError = false;
+    let dataIndex = 0;
+
+    $(document).ready(function(){
+
+        dataList = [
+            { email: "Mark", info: "Otto" },
+            { email: "Jacob", info: "Thornton" }
+        ];
+        renderTable();
+
+        // 重新渲染表格
+        function renderTable(){
+            // 清空錯誤訊息
+            clearForm()
+            let $table = $("#table-content").empty();
+            dataList.forEach((item, index) => {
+                let $row = $("<tr>");            
+                $row.append($("<td>").text(item.email));
+                $row.append($("<td>").text(item.info));
+                // 刪除按鈕，每個按鈕帶有 data-index 表示資料在陣列裡的索引值
+                let $actions = $("<td>");
+                $actions.append(`<button class="btn btn-sm btn-danger delBtn" data-index="${index}">刪除</button>`);
+                // 組合整列後加入到 table 中
+                $row.append($actions);
+                $table.append($row);
+            });
+            $(".editBtn, .delBtn").css("visibility", "hidden");
+        }
+
+        // 新增資料
+        $(".addBtn").click(function(){
+            // 清空錯誤訊息
+            clearErrMsg();
+
+            let email = $("#emailInput").val().trim();
+            let info = $("#infoInput").val().trim();
+
+            if (!validateInputs(email, info)) return;
+
+            dataList.unshift({ email, info });
+
+            clearForm();
+            renderTable();
+            
+        })
+
+        // 清空上面資料
+        $(".clearBtn").click(function(){
+            $(".delBtn").css("visibility", "hidden");
+            clearForm();
+        })
+
+        // 刪除資料  // todo 一開始刪除時抓不到index
+        $(document).on("click", ".delBtn", function (event) {
+            // 阻止事件冒泡
+            event.stopPropagation();
+
+            // dataIndex= $(this).data("index");
+            let rowIndex = $(this).closest("tr").index();
+            dataList.splice(dataIndex, 1); // 移除陣列資料
+            renderTable();
+        });
+        
+        // 編輯資料 (1/2) 點選表格列中的儲存格
+        $(document).on("click", "#table-content td", function () {
+            // 清空錯誤訊息
+            clearErrMsg()
+
+            let $tr = $(this).closest("tr");
+            let email = $tr.find("td:eq(0)").text().trim();
+            let info = $tr.find("td:eq(1)").text().trim();            
+            dataIndex = $tr.index();
+
+            // 將資料放入輸入欄位
+            $("#emailInput").val(email);
+            $("#infoInput").val(info);
+
+            // 顯示編輯按鈕
+            $(".editBtn").css("visibility", "visible");
+            $(".cancelEditBtn").css("visibility", "visible");
+            // 禁止點選新增按鈕
+            $(".addBtn").prop("disabled", true);
+            // 隱藏所有按鈕，再顯示這列的
+            $(".delBtn").css("visibility", "hidden");
+            $tr.find(".delBtn").css("visibility", "visible");
+        });        
+
+        // 編輯資料 (2/2) 確認編輯
+        $(document).on("click", ".editBtn", function () {
+            let email = $("#emailInput").val().trim();
+            let info = $("#infoInput").val().trim();
+
+            // 驗證
+            if (!validateInputs(email, info)) return;
+
+            // 變更
+            let data = { email, info };
+            dataList[dataIndex] = data;
+            clearForm();
+            renderTable();
+            
+        });
+        
+        // 取消編輯
+        $(".cancelEditBtn").click(function(){
+            clearForm()
+            renderTable();
+        })
+
+        // 清空輸入框的內容
+        function clearForm(){
+            isEdit = false;
+
+            $("#emailInput").val("");
+            $("#infoInput").val("");
+
+            $("#emailInput").css({"border-color": ""});
+            $("#infoInput").css({"border-color": ""});
+
+            // 顯示編輯按鈕
+            $(".editBtn").css("visibility", "hidden");
+            $(".cancelEditBtn").css("visibility", "hidden");
+            $(".addBtn").prop("disabled", false);
+            dataIndex = 0;
+        }
+    
+        // 清空錯誤訊息
+        function clearErrMsg(){
+            $("#emailInput").css({"border-color": ""});
+            $("#infoInput").css({"border-color": ""});
+        }
+    
+        // 檢查儲存格內容
+        function validateInputs(email, info){
+            hasError = false;
+
+            if (!email) {
+                $("#emailInput").css("border-color", "red");
+                hasError = true;
+            } else{
+                $("#emailInput").css("border-color", "");
+            }
+
+            if (!info) {
+                $("#infoInput").css("border-color", "red");
+                hasError = true;
+            } else{
+                $("#infoInput").css("border-color", "");
+            }
+            return !hasError;
+        }
+    
+    });
+    
+</script>
